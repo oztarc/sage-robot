@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sage Protocol — Interactive System 01</title>
+</head>
+<body>
+<canvas id="viewport"></canvas>
+<div class="hud">
+  <header class="ident">
+    <h1>SAGE PROTOCOL</h1>
+    <p>INTERACTIVE SYSTEM // 01</p>
+  </header>
+  <div class="rail">
+    <section class="panel selection" id="selection" hidden aria-live="polite">
+      <div class="panel__bar"><span>COMPONENT</span></div>
+      <p class="selection__name" data-slot="sel-name">—</p>
+      <dl class="panel__grid">
+        <dt>triangles</dt><dd data-slot="sel-tris">—</dd>
+        <dt>material</dt><dd data-slot="sel-mats">—</dd>
+      </dl>
+    </section>
+    <aside class="panel readout" aria-label="System readout">
+      <div class="panel__bar"><span>SYSTEM READOUT</span><i data-slot="state">INIT</i></div>
+      <dl class="panel__grid">
+        <dt>clip</dt><dd data-slot="clip">—</dd>
+        <dt>duration</dt><dd data-slot="duration">—</dd>
+        <dt>scrub window</dt><dd data-slot="window">—</dd>
+        <dt>cursor</dt><dd data-slot="cursor">—</dd>
+        <dt>meshes</dt><dd data-slot="meshes">—</dd>
+        <dt>selectable</dt><dd data-slot="parts">—</dd>
+        <dt>materials</dt><dd data-slot="materials">—</dd>
+        <dt>optic</dt><dd data-slot="optic">—</dd>
+        <dt>triangles</dt><dd data-slot="triangles">—</dd>
+        <dt>draw calls</dt><dd data-slot="calls">—</dd>
+        <dt>glb load</dt><dd data-slot="load">—</dd>
+        <dt>frame rate</dt><dd data-slot="fps">—</dd>
+      </dl>
+    </aside>
+  </div>
+  <div class="console">
+    <div class="console__actions">
+      <button type="button" class="btn" data-act="assemble">ASSEMBLE</button>
+      <button type="button" class="btn" data-act="explode">EXPLODE</button>
+      <button type="button" class="btn" data-toggle="wireframe" aria-pressed="false">WIREFRAME</button>
+      <button type="button" class="btn" data-toggle="optic" aria-pressed="false">OPTIC</button>
+      <button type="button" class="btn" data-toggle="autorotate" aria-pressed="false">AUTO ROTATE</button>
+      <button type="button" class="btn" data-act="reset">RESET VIEW</button>
+    </div>
+    <div class="scrub">
+      <label class="scrub__cap" for="scrub">ASSEMBLED</label>
+      <div class="scrub__track">
+        <input id="scrub" class="scrub__input" type="range" min="0" max="1000" step="1" value="0" aria-label="Explode position" />
+        <div class="scrub__ticks" aria-hidden="true"></div>
+      </div>
+      <span class="scrub__cap scrub__cap--end">EXPLODED</span>
+      <output class="scrub__value" data-slot="pct">000</output>
+    </div>
+  </div>
+  <div class="boot" id="boot" role="status">
+    <span class="boot__text" data-slot="boot">ESTABLISHING LINK</span>
+    <span class="boot__bar"><i data-slot="bootbar"></i></span>
+  </div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
