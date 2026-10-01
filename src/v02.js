@@ -2,11 +2,12 @@ import './v02.css';
 import * as THREE from 'three';
 import { createStage, prefersReducedMotion } from './scene.js';
 import { loadRobot, scrub, setWireframe } from './robot.js';
-import { createInteraction } from './interaction.js';
+import { createInteraction, triangleCount } from './interaction.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('viewport');
 const exhibit = $('exhibit');
+const stageShell = $('stage-shell');
 const svg = $('leaders');
 const reduced = prefersReducedMotion();
 const mobile = window.matchMedia('(max-width: 900px)');
@@ -29,6 +30,14 @@ const descriptions = {
   shin_foot_L: ['Lower leg · L', 'The left lower leg and foot assembly.'],
   shin_foot_R: ['Lower leg · R', 'The right lower leg and foot assembly.'],
 };
+
+const chapters = [
+  { phase: 'AWAKEN', title: 'Bring the system online.', copy: 'Power reaches the frame. The machine resolves from silhouette into structure.', from: 0, to: .22 },
+  { phase: 'SUSPEND', title: 'Hold the machine in inspection space.', copy: 'SAGE leaves the floor. Weight becomes geometry; geometry becomes readable.', from: .22, to: .42 },
+  { phase: 'DISASSEMBLE', title: 'Expose the logic under the shell.', copy: 'The field unit separates into systems, surfaces and structural decisions without a rigged animation.', from: .42, to: .72 },
+  { phase: 'REASSEMBLE', title: 'Return it to combat form.', copy: 'Every component finds its place again. The study ends where the future encounter begins.', from: .72, to: 1 },
+];
+
 const directions = {
   iso: new THREE.Vector3(.62, .22, 1).normalize(),
   front: new THREE.Vector3(0, .03, 1).normalize(),
@@ -41,6 +50,8 @@ let stage, rig, interaction, tween, request = 0, value = 0, view = 'iso';
 let selected = null, labels = true, autoRotate = false, visible = true, destroyed = false;
 let previousTime = 0, settleUntil = 0, lastLeaderTime = 0;
 let baseMaterials = [];
+let storyScheduled = 0, storyChapter = -1, storyProgress = 0;
+let rootBasePosition = null, rootBaseQuaternion = null, modelSphere = null;
 const listeners = [];
 const lines = [];
 const box = new THREE.Box3();
@@ -105,11 +116,36 @@ function showSelection(info) {
   invalidate(1000);
 }
 
+function prettyName(raw, fallback) {
+  const clean = (raw || fallback)
+    .replace(/[_\\-.]+/g, ' ')
+    .replace(/\\b(mesh|geo|geometry|object|part)\\b/gi, '')
+    .replace(/\\s+/g, ' ')
+    .trim();
+  return clean ? clean.replace(/\\b\\w/g, (letter) => letter.toUpperCase()) : fallback;
+}
+
 function createAnnotations() {
-  for (const button of partButtons) {
-    const node = rig.components.find((component) => component.name === button.dataset.part);
-    if (!node) { button.hidden = true; continue; }
+  const exact = new Map(rig.components.filter((component) => component.name).map((component) => [component.name, component]));
+  const used = new Set();
+  const fallbackPool = [...rig.components].sort((a, b) => triangleCount(b) - triangleCount(a));
+
+  partButtons.forEach((button, index) => {
+    const requested = button.dataset.part;
+    let node = exact.get(requested);
+    if (!node || used.has(node)) node = fallbackPool.find((candidate) => !used.has(candidate));
+    if (!node) { button.hidden = true; return; }
+
+    used.add(node);
+    if (!node.name) node.name = 'sage_component_' + String(index + 1).padStart(2, '0');
+    button.dataset.part = node.name;
     button.setAttribute('aria-pressed', 'false');
+
+    if (node.name !== requested) {
+      button.querySelector('strong').textContent = prettyName(node.name, 'Component ' + String(index + 1).padStart(2, '0'));
+      button.querySelector('small').textContent = triangleCount(node).toLocaleString() + ' tris / field assembly';
+    }
+
     const group = document.createElementNS(namespace, 'g');
     const path = document.createElementNS(namespace, 'path');
     const dot = document.createElementNS(namespace, 'circle');
@@ -122,13 +158,13 @@ function createAnnotations() {
       $('rotate').setAttribute('aria-pressed', 'false');
       interaction.selectComponent(node);
     });
-  }
+  });
 }
 
 function updateLeaders(now) {
   if (!labels || mobile.matches || now - lastLeaderTime < 32) return;
   lastLeaderTime = now;
-  const rect = exhibit.getBoundingClientRect();
+  const rect = stageShell.getBoundingClientRect();
   const viewport = canvas.getBoundingClientRect();
   rig.root.updateMatrixWorld(true);
   stage.camera.updateMatrixWorld();
@@ -167,6 +203,67 @@ function setFinish(name) {
   invalidate();
 }
 
+
+function chapterFor(progress) {
+  return chapters.findIndex((chapter, index) => progress < chapter.to || index === chapters.length - 1);
+}
+
+function setChapter(index, progress) {
+  const chapter = chapters[index];
+  if (!chapter) return;
+  if (storyChapter !== index) {
+    storyChapter = index;
+    exhibit.dataset.phase = String(index);
+    $('chapter-index').textContent = String(index + 1).padStart(2, '0');
+    $('chapter-phase').textContent = chapter.phase;
+    $('chapter-title').textContent = chapter.title;
+    $('chapter-copy').textContent = chapter.copy;
+  }
+  const local = THREE.MathUtils.clamp((progress - chapter.from) / Math.max(chapter.to - chapter.from, .0001), 0, 1);
+  $('chapter-progress').style.transform = 'scaleX(' + local + ')';
+}
+
+function applyStory(progress) {
+  if (!rig) return;
+  storyProgress = progress;
+  const chapter = chapterFor(progress);
+  setChapter(chapter, progress);
+  exhibit.classList.toggle('is-scrolled', progress > .035);
+
+  let assembly = 0;
+  if (progress >= .42 && progress < .72) {
+    assembly = ease(THREE.MathUtils.clamp((progress - .42) / .30, 0, 1));
+  } else if (progress >= .72) {
+    assembly = 1 - ease(THREE.MathUtils.clamp((progress - .72) / .28, 0, 1));
+  }
+  apply(assembly);
+
+  if (rootBasePosition && rootBaseQuaternion && modelSphere) {
+    const liftIn = THREE.MathUtils.smoothstep(progress, .12, .3);
+    const liftOut = 1 - THREE.MathUtils.smoothstep(progress, .78, 1);
+    rig.root.position.copy(rootBasePosition);
+    rig.root.position.y += modelSphere.radius * .055 * liftIn * liftOut;
+    rig.root.quaternion.copy(rootBaseQuaternion);
+    rig.root.rotateY(THREE.MathUtils.lerp(-.07, .12, THREE.MathUtils.smoothstep(progress, .08, .96)));
+    rig.root.updateMatrixWorld(true);
+  }
+
+  stage.renderer.toneMappingExposure = THREE.MathUtils.lerp(.78, 1.15, THREE.MathUtils.smoothstep(progress, 0, .18));
+  invalidate(500);
+}
+
+function updateStoryFromScroll() {
+  storyScheduled = 0;
+  if (!rig || destroyed) return;
+  const rect = exhibit.getBoundingClientRect();
+  const travel = Math.max(exhibit.offsetHeight - window.innerHeight, 1);
+  applyStory(THREE.MathUtils.clamp(-rect.top / travel, 0, 1));
+}
+
+function scheduleStory() {
+  if (!storyScheduled) storyScheduled = requestAnimationFrame(updateStoryFromScroll);
+}
+
 function wireControls() {
   on($('explode'), 'input', () => { tween = null; apply(Number($('explode').value) / 1000); });
   on($('separate'), 'click', () => {
@@ -202,7 +299,7 @@ function wireControls() {
     $('wireframe').setAttribute('aria-pressed', 'false'); $('rotate').setAttribute('aria-pressed', 'false');
   });
   on($('fullscreen'), 'click', async () => {
-    try { if (document.fullscreenElement) await document.exitFullscreen(); else await exhibit.requestFullscreen(); }
+    try { if (document.fullscreenElement) await document.exitFullscreen(); else await stageShell.requestFullscreen(); }
     catch { $('live-status').textContent = 'Full screen is unavailable in this browser.'; }
   });
   on(document, 'fullscreenchange', () => {
@@ -212,6 +309,7 @@ function wireControls() {
     if (event.key === 'Escape') resetSelection();
     if (event.key.toLowerCase() === 'r') $('reset').click();
   });
+  on(window, 'scroll', scheduleStory, { passive: true });
 }
 
 function render(now) {
@@ -236,7 +334,7 @@ function render(now) {
 
 function destroy() {
   if (destroyed) return;
-  destroyed = true; cancelAnimationFrame(request);
+  destroyed = true; cancelAnimationFrame(request); cancelAnimationFrame(storyScheduled);
   for (const off of listeners) off();
   observer?.disconnect(); resizeObserver?.disconnect();
   interaction?.dispose();
@@ -249,7 +347,7 @@ const observer = new IntersectionObserver(([entry]) => {
   visible = entry.isIntersecting;
   if (visible) invalidate();
 }, { threshold: 0 });
-observer.observe(canvas);
+observer.observe(stageShell);
 const resizeObserver = new ResizeObserver(() => {
   if (rig && !selected) setView(view, false);
   invalidate(500);
@@ -257,19 +355,19 @@ const resizeObserver = new ResizeObserver(() => {
 resizeObserver.observe(canvas);
 on(document, 'visibilitychange', () => {
   if (document.hidden) { cancelAnimationFrame(request); request = 0; }
-  else invalidate();
+  else { invalidate(); scheduleStory(); }
 });
 on(window, 'pagehide', (event) => {
   if (event.persisted) { cancelAnimationFrame(request); request = 0; } else destroy();
 });
-on(window, 'pageshow', () => invalidate());
+on(window, 'pageshow', () => { invalidate(); scheduleStory(); });
 on($('retry'), 'click', () => window.location.reload());
 
 async function init() {
   try {
     stage = createStage(canvas, { pixelRatioCap: mobile.matches ? 1.5 : 1.25 });
     stage.scene.environmentIntensity = .8;
-    stage.renderer.toneMappingExposure = 1.15;
+    stage.renderer.toneMappingExposure = .78;
     on(canvas, 'pointermove', () => invalidate(400), { passive: true });
     on(canvas, 'pointerdown', () => { stage.cancelFlight(); invalidate(1000); }, { passive: true });
     on(canvas, 'pointerup', () => invalidate(1000), { passive: true });
@@ -285,12 +383,17 @@ async function init() {
     } });
     if (destroyed) return;
     stage.scene.add(rig.root); stage.frame(rig.box, 1.05);
-    baseMaterials = rig.materials.filter((m) => /head_shell|chest_center|pelvis_center|upperarm|thigh|shin/i.test(m.name)).map((material) => ({
+    const surfaceMaterials = rig.materials.filter((material) => material?.color && !/optic|eye|lens|emissive/i.test(material.name || ''));
+    const materialsToFinish = surfaceMaterials.length ? surfaceMaterials : rig.materials.filter((material) => material?.color);
+    baseMaterials = materialsToFinish.map((material) => ({
       material, color: material.color.clone(), map: material.map,
       roughness: material.roughness, metalness: material.metalness,
     }));
     interaction = createInteraction({ stage, rig, canvas, onSelect: showSelection });
     const sphere = rig.box.getBoundingSphere(new THREE.Sphere());
+    modelSphere = sphere.clone();
+    rootBasePosition = rig.root.position.clone();
+    rootBaseQuaternion = rig.root.quaternion.clone();
     stage.controls.maxDistance = Math.max(14, sphere.radius * 16);
     stage.controls.minDistance = sphere.radius * .12;
 
@@ -306,11 +409,11 @@ async function init() {
     stage.scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPoints), new THREE.LineBasicMaterial({ color: 0x7c654b, transparent: true, opacity: .45 })));
     createAnnotations(); wireControls(); apply(0); setView('iso', false);
     for (const b of document.querySelectorAll('button:disabled, input:disabled')) b.disabled = false;
-    if (!rig.clip) { $('explode').disabled = true; $('separate').disabled = true; }
+    if (!rig.canExplode) { $('explode').disabled = true; $('separate').disabled = true; }
     if (!document.fullscreenEnabled) $('fullscreen').hidden = true;
     $('boot-progress').style.width = '100%'; $('boot').classList.add('is-done');
     setTimeout(() => { $('boot').hidden = true; }, reduced ? 0 : 450);
-    invalidate(1200);
+    scheduleStory(); invalidate(1200);
   } catch (error) {
     console.error('[SAGE V02]', error);
     $('boot-label').textContent = 'SAGE could not be loaded';
@@ -320,4 +423,4 @@ async function init() {
 }
 init();
 import.meta.hot?.dispose(destroy);
-window.SAGE_V02 = { get stage() { return stage; }, get rig() { return rig; }, get interaction() { return interaction; }, get value() { return value; } };
+window.SAGE_V02 = { get stage() { return stage; }, get rig() { return rig; }, get interaction() { return interaction; }, get value() { return value; }, get storyProgress() { return storyProgress; } };
