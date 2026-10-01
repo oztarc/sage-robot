@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-export const MODEL_URL = import.meta.env.BASE_URL + 'robo_smooth_parts.glb';
+export const MODEL_URL = import.meta.env.BASE_URL + 'robot_web_v02.glb';
 export const EXPLODE_CLIP = 'Explode';
 
 export const SCRUB_FROM = 0.833;
