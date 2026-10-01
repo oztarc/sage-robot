@@ -229,6 +229,14 @@ export function createInteraction({ stage, rig, canvas, onSelect }) {
       return selected;
     },
 
+    // Lets an accessible HTML annotation select the same authored component
+    // as a canvas raycast, without synthesizing a pointer event.
+    selectComponent(component) {
+      if (!rig.components.includes(component)) return;
+      stage.cancelFlight();
+      select(component);
+    },
+
     hasOptic: opticMaterials.length > 0,
 
     dispose() {

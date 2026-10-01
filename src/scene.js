@@ -9,7 +9,7 @@ export function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export function createStage(canvas) {
+export function createStage(canvas, { pixelRatioCap = 2 } = {}) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -125,7 +125,7 @@ export function createStage(canvas) {
     if (!w || !h) return;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
     renderer.setSize(w, h, false);
   }
 
@@ -165,7 +165,7 @@ export function createStage(canvas) {
     controls.dispose();
 
     scene.traverse((o) => {
-      if (!o.isMesh) return;
+      if (!o.isMesh && !o.isLine) return;
       o.geometry?.dispose();
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       for (const m of mats) {
