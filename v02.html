@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SAGE V02 — Anatomy of a Machine · OMI</title>
+  <meta name="description" content="Explore SAGE in three dimensions. Separate its assembly, inspect individual components and discover the anatomy of OMI's robot." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090c0e'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23edaa68' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23edaa68'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <main class="exhibit" id="exhibit">
+    <canvas id="viewport" aria-label="Interactive three dimensional SAGE robot. Drag to rotate, scroll or pinch to zoom. Components can also be selected from the anatomy buttons." tabindex="0"></canvas>
+    <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+    <header class="masthead">
+      <a class="brand" href="https://theomi.co" aria-label="OMI home">OMI<span>ORIGINALS</span></a>
+      <div class="edition">INTERACTIVE STUDY <span>002 / SAGE</span></div>
+      <button class="quiet" id="fullscreen" disabled type="button">FULL SCREEN</button>
+    </header>
+
+    <section class="intro" aria-labelledby="title">
+      <p class="eyebrow">ANATOMY OF A MACHINE</p>
+      <h1 id="title">SAGE<span>V.02</span></h1>
+      <p class="intro__copy">Every part has a place.<br />Take a closer look.</p>
+    </section>
+
+    <nav class="finishes" aria-label="Surface finish">
+      <button type="button" data-finish="original" aria-pressed="true" disabled><i class="swatch swatch--original"></i>Original</button>
+      <button type="button" data-finish="porcelain" aria-pressed="false" disabled><i class="swatch swatch--porcelain"></i>Porcelain</button>
+      <button type="button" data-finish="graphite" aria-pressed="false" disabled><i class="swatch swatch--graphite"></i>Graphite</button>
+    </nav>
+
+    <aside class="anatomy anatomy--left" aria-label="Left component annotations">
+      <span class="rail-label">01—04 / UPPER ASSEMBLY</span>
+      <button class="part" data-part="head_shell" disabled><span class="part__number">01</span><span><strong>Head housing</strong><small>Outer shell / optical face</small></span></button>
+      <button class="part" data-part="neck" disabled><span class="part__number">02</span><span><strong>Neck assembly</strong><small>Head connection / cable routing</small></span></button>
+      <button class="part" data-part="chest_center" disabled><span class="part__number">03</span><span><strong>Torso chassis</strong><small>Central body structure</small></span></button>
+      <button class="part" data-part="upperarm_L" disabled><span class="part__number">04</span><span><strong>Upper arm · L</strong><small>Shoulder-to-elbow section</small></span></button>
+    </aside>
+    <aside class="anatomy anatomy--right" aria-label="Right component annotations">
+      <span class="rail-label">05—08 / LOWER ASSEMBLY</span>
+      <button class="part" data-part="forearm_R" disabled><span class="part__number">05</span><span><strong>Forearm · R</strong><small>Lower arm / wrist connection</small></span></button>
+      <button class="part" data-part="hand_R" disabled><span class="part__number">06</span><span><strong>Hand assembly · R</strong><small>Terminal arm component</small></span></button>
+      <button class="part" data-part="pelvis_center" disabled><span class="part__number">07</span><span><strong>Pelvic frame</strong><small>Torso-to-leg connection</small></span></button>
+      <button class="part" data-part="shin_foot_R" disabled><span class="part__number">08</span><span><strong>Lower leg · R</strong><small>Shin / foot assembly</small></span></button>
+    </aside>
+
+    <section class="component-card" id="component-card" hidden aria-live="polite">
+      <button class="card-close" id="clear-selection" type="button" aria-label="Close component inspection">×</button>
+      <p class="eyebrow">COMPONENT INSPECTION</p><h2 id="component-title"></h2>
+      <p id="component-description"></p>
+      <button class="quiet" id="return-view" type="button">RETURN TO ASSEMBLY</button>
+    </section>
+    <div class="view-caption" aria-live="polite"><span id="view-label">THREE-QUARTER VIEW</span><span id="assembly-status">ASSEMBLED</span></div>
+    <div class="gesture">DRAG TO ROTATE <span>·</span> SCROLL TO ZOOM <span>·</span> SELECT A COMPONENT</div>
+
+    <footer class="instrument">
+      <div class="instrument__top">
+        <div class="assembly-control"><label for="explode">ASSEMBLY</label><span>Intact</span><input id="explode" type="range" min="0" max="1000" value="0" step="1" aria-label="Separate robot assembly" disabled /><span>Separated</span><output id="explode-value" for="explode">0%</output></div>
+        <button class="action" id="separate" type="button" disabled>SEPARATE PARTS</button>
+      </div>
+      <div class="instrument__bottom">
+        <nav class="view-controls" aria-label="Camera view"><span>VIEW</span><button data-view="iso" type="button" aria-pressed="true" disabled>3/4</button><button data-view="front" type="button" aria-pressed="false" disabled>Front</button><button data-view="side" type="button" aria-pressed="false" disabled>Side</button><button data-view="back" type="button" aria-pressed="false" disabled>Back</button><button data-view="top" type="button" aria-pressed="false" disabled>Top</button></nav>
+        <div class="display-controls"><button id="labels" type="button" aria-pressed="true" disabled>Annotations</button><button id="wireframe" type="button" aria-pressed="false" disabled>Wireframe</button><button id="rotate" type="button" aria-pressed="false" disabled>Auto rotate</button><button id="reset" type="button" disabled>Reset</button></div>
+      </div>
+    </footer>
+    <div class="boot" id="boot" role="status"><p class="eyebrow">OMI / SAGE V02</p><h2 id="boot-label">Preparing the assembly</h2><div class="boot-track"><span id="boot-progress"></span></div><p id="boot-note">Loading the original 3D model</p><button id="retry" type="button" hidden>Try again</button></div>
+    <p class="sr-only" id="live-status" role="status"></p>
+  </main>
+  <script type="module" src="/src/v02.js"></script>
+</body>
+</html>
