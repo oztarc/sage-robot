@@ -9,6 +9,7 @@
 </head>
 <body>
   <main class="exhibit" id="exhibit">
+    <div class="stage-shell" id="stage-shell">
     <canvas id="viewport" aria-label="Interactive three dimensional SAGE robot. Drag to rotate, scroll or pinch to zoom. Components can also be selected from the anatomy buttons." tabindex="0"></canvas>
     <svg class="leaders" id="leaders" aria-hidden="true"></svg>
     <header class="masthead">
@@ -20,13 +21,21 @@
     <section class="intro" aria-labelledby="title">
       <p class="eyebrow">ANATOMY OF A MACHINE</p>
       <h1 id="title">SAGE<span>V.02</span></h1>
-      <p class="intro__copy">Every part has a place.<br />Take a closer look.</p>
+      <p class="intro__copy">A field machine, before the field.<br />Scroll to decode the assembly.</p>
     </section>
+
+    <aside class="sequence" aria-live="polite">
+      <div class="sequence__index"><span id="chapter-index">01</span><i></i><span>04</span></div>
+      <p class="sequence__phase" id="chapter-phase">AWAKEN</p>
+      <h2 id="chapter-title">Bring the system online.</h2>
+      <p id="chapter-copy">Power reaches the frame. The machine resolves from silhouette into structure.</p>
+      <div class="sequence__bar"><i id="chapter-progress"></i></div>
+    </aside>
 
     <nav class="finishes" aria-label="Surface finish">
       <button type="button" data-finish="original" aria-pressed="true" disabled><i class="swatch swatch--original"></i>Original</button>
-      <button type="button" data-finish="porcelain" aria-pressed="false" disabled><i class="swatch swatch--porcelain"></i>Porcelain</button>
-      <button type="button" data-finish="graphite" aria-pressed="false" disabled><i class="swatch swatch--graphite"></i>Graphite</button>
+      <button type="button" data-finish="porcelain" aria-pressed="false" disabled><i class="swatch swatch--porcelain"></i>Ceramic</button>
+      <button type="button" data-finish="graphite" aria-pressed="false" disabled><i class="swatch swatch--graphite"></i>Obsidian</button>
     </nav>
 
     <aside class="anatomy anatomy--left" aria-label="Left component annotations">
@@ -51,7 +60,8 @@
       <button class="quiet" id="return-view" type="button">RETURN TO ASSEMBLY</button>
     </section>
     <div class="view-caption" aria-live="polite"><span id="view-label">THREE-QUARTER VIEW</span><span id="assembly-status">ASSEMBLED</span></div>
-    <div class="gesture">DRAG TO ROTATE <span>·</span> SCROLL TO ZOOM <span>·</span> SELECT A COMPONENT</div>
+    <div class="gesture">DRAG TO ROTATE <span>·</span> SCROLL TO ADVANCE <span>·</span> SELECT A COMPONENT</div>
+    <div class="scroll-cue" aria-hidden="true"><span>SCROLL TO DECODE</span><i></i></div>
 
     <footer class="instrument">
       <div class="instrument__top">
@@ -65,7 +75,21 @@
     </footer>
     <div class="boot" id="boot" role="status"><p class="eyebrow">OMI / SAGE V02</p><h2 id="boot-label">Preparing the assembly</h2><div class="boot-track"><span id="boot-progress"></span></div><p id="boot-note">Loading the original 3D model</p><button id="retry" type="button" hidden>Try again</button></div>
     <p class="sr-only" id="live-status" role="status"></p>
+    </div>
   </main>
+
+  <section class="revelation-bridge" aria-labelledby="revelation-title">
+    <p class="eyebrow">REVELATION // FIELD ENCOUNTER PROTOCOL</p>
+    <h2 id="revelation-title">YOU'VE SEEN<br />HOW IT'S BUILT.</h2>
+    <p class="bridge-lead">Next, the anatomy becomes gameplay.</p>
+    <div class="bridge-grid">
+      <article><span>01</span><h3>READ THE MACHINE</h3><p>Component recognition from the V02 study becomes battlefield knowledge.</p></article>
+      <article><span>02</span><h3>BREAK THE SYSTEM</h3><p>Future damage logic will translate structure, exposure and failure into combat decisions.</p></article>
+      <article><span>03</span><h3>CROSS THE THRESHOLD</h3><p>SAGE leaves the showroom and enters the Revelation universe as an encounter.</p></article>
+    </div>
+    <div class="bridge-status"><i></i><span>GAME PROTOCOL / IN DEVELOPMENT</span></div>
+  </section>
+
   <script type="module" src="/src/v02.js"></script>
 </body>
 </html>
