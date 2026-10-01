@@ -3,6 +3,32 @@
 Three.js viewer for `robot_web_v02.glb`: orbit, manual Explode scrubbing,
 wireframe, optic glow, auto-rotate, hover highlighting and click-to-focus.
 
+## SAGE V02 anatomy page
+
+`/v02.html` is a separate, presentation-focused view of the same original
+robot. The existing `/` viewer remains available.
+
+- Eight HTML component annotations with lines anchored to the animated model.
+- Keyboard-accessible component inspection, camera presets, assembly slider,
+  wireframe, optional auto rotation and original / porcelain / graphite finishes.
+- Responsive mobile layout, reduced-motion support, loading/error/retry states.
+- Rendering sleeps when idle, offscreen or in a hidden tab. Desktop pixel ratio
+  is capped at 1.25; mobile at 1.5. No bloom or particle simulation is used.
+
+The included model contains about 1.99 million triangles and is 57.9 MB. A
+lower-poly replacement should retain node names and separate parts, and ideally
+the `Explode` clip. The named annotation targets are `head_shell`, `neck`,
+`chest_center`, `upperarm_L`, `forearm_R`, `hand_R`, `pelvis_center` and
+`shin_foot_R`. Missing targets are omitted; a model without an animation still
+supports orbit, selection, finish changes and camera views, with separation
+controls disabled. Finish changes affect outer panels only and do not imply
+manufacturing specifications.
+
+For an OMI project page, use the deployed `/v02.html` URL as the dedicated
+experience or embed it in an iframe with an accessible title, generous height
+and `allow="fullscreen"`. Load the iframe only near the viewport so the robot
+does not delay the portfolio's initial load.
+
 ## Setup
 
 ```bash
