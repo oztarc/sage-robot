@@ -118,11 +118,11 @@ function showSelection(info) {
 
 function prettyName(raw, fallback) {
   const clean = (raw || fallback)
-    .replace(/[_\\-.]+/g, ' ')
-    .replace(/\\b(mesh|geo|geometry|object|part)\\b/gi, '')
-    .replace(/\\s+/g, ' ')
+    .replace(/[_\-.]+/g, ' ')
+    .replace(/\b(mesh|geo|geometry|object|part)\b/gi, '')
+    .replace(/\s+/g, ' ')
     .trim();
-  return clean ? clean.replace(/\\b\\w/g, (letter) => letter.toUpperCase()) : fallback;
+  return clean ? clean.replace(/\b\w/g, (letter) => letter.toUpperCase()) : fallback;
 }
 
 function createAnnotations() {
