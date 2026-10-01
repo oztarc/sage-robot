@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-export const MODEL_URLS = [
-  import.meta.env.BASE_URL + 'robo_smooth_parts.glb',
-  import.meta.env.BASE_URL + 'robot_web_v02.glb',
-];
+export const MODEL_URL = import.meta.env.BASE_URL + 'robo_smooth_parts.glb';
 export const EXPLODE_CLIP = 'Explode';
 
 export const SCRUB_FROM = 0.833;
@@ -22,22 +19,8 @@ function loadUrl(url, onProgress) {
 
 export async function loadRobot({ onProgress } = {}) {
   const started = performance.now();
-  let gltf = null;
-  let sourceUrl = null;
-  let lastError = null;
-
-  for (const url of MODEL_URLS) {
-    try {
-      gltf = await loadUrl(url, onProgress);
-      sourceUrl = url;
-      break;
-    } catch (error) {
-      lastError = error;
-      console.info('[SAGE] model unavailable at ' + url + '; trying fallback');
-    }
-  }
-
-  if (!gltf) throw lastError ?? new Error('No SAGE model could be loaded.');
+  const sourceUrl = MODEL_URL;
+  const gltf = await loadUrl(sourceUrl, onProgress);
 
   const root = gltf.scene;
   const meshes = [];
